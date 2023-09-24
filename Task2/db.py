@@ -1,13 +1,12 @@
 from sqlalchemy import Column, Integer, String, create_engine, MetaData, Table, select
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncAttrs
 
-database = "sqlite+aiosqlite:///users.db"
-engine = create_async_engine(database, echo=True)
+engine = create_async_engine(f"sqlite+aiosqlite:///users.db", echo=True)
 
 metadata = MetaData()
 
-class Base(DeclarativeBase):
+class Base(DeclarativeBase,AsyncAttrs):
     pass
 
 class User_DB(Base):
@@ -23,6 +22,10 @@ users = Table(
     Column('user_name', String(100)),
     Column('email', String(100))
 )
+
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)
 
 async_session = sessionmaker(
     engine,
